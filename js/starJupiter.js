@@ -17,7 +17,7 @@ const StartJupiter = function () {
         lightMapIntensity: 0.05, // 自发光强度   
         bumpMap: this.mapTexture, // 凹凸贴图
         bumpScale: 0.1, // 凹凸程度
-        metalness: 0.5, // 金属质感
+        metalness: 0.6, // 金属质感
         roughness: 1, // 粗糙程度
     });
 

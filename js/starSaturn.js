@@ -15,12 +15,10 @@ const StartSaturn = function () {
     // 材质
     this.material = new THREE.MeshStandardMaterial({
         map: this.mapTexture, // 漫反射贴图
-        lightMap: this.mapTexture, // 自发光贴图
-        lightMapIntensity: 0.02, // 自发光强度   
         bumpMap: this.mapTexture, // 凹凸贴图，没有明显的凹凸
-        bumpScale: 0.1, // 凹凸程度
-        metalness: 0.5, // 金属质感
-        roughness: 1, // 粗糙程度
+        bumpScale: 0.5, // 凹凸程度
+        metalness: 0.6, // 金属质感
+        roughness: 2, // 粗糙程度
     });
 
     // 球体对象
@@ -38,7 +36,7 @@ const StartSaturn = function () {
         const cube = new THREE.Mesh(boxGeom, new THREE.MeshStandardMaterial({
             color: 0xCCCCCC,
             opacity: Math.random() * 1,
-            metalness: 0,
+            metalness: 1,
             roughness: 1,
         }));
         cube.position.x = Math.sin(i) * Math.PI * (Math.random() + 10 + Math.random() * 5);
@@ -53,10 +51,9 @@ const StartSaturn = function () {
     this.ringShadownMaterial = new THREE.MeshStandardMaterial({
         alphaMap: this.ringShadownTexture,
         side: THREE.DoubleSide,
-        specular: 0,
         opacity: 0.5,
         transparent: true,
-        roughness: 2, // 粗糙程度
+        roughness: 1, // 粗糙程度
     });
     this.ringShadownMesh = new THREE.Mesh(this.ringShadown, this.ringShadownMaterial);
     this.ringShadownMesh.rotation.x = Math.PI;

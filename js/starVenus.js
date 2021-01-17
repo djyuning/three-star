@@ -14,10 +14,10 @@ const StarVenus = function () {
     this.material = new THREE.MeshStandardMaterial({
         map: this.mapTexture, // 漫反射贴图
         lightMap: this.mapTexture, // 自发光贴图
-        lightMapIntensity: 0.01, // 自发光强度   
+        lightMapIntensity: 0.3, // 自发光强度   
         bumpMap: this.mapTexture, // 凹凸贴图
         bumpScale: 0.2, // 凹凸程度
-        metalness: 0.1, // 金属质感
+        metalness: 0.6, // 金属质感
         roughness: 1, // 粗糙程度
     });
 

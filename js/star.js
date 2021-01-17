@@ -3,7 +3,9 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 
 // 创建渲染器
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({
+    antialias: true, // 抗锯齿
+});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(width, height);
 document.body.appendChild(renderer.domElement);
@@ -25,25 +27,23 @@ scene.add(camera);
 
 // 调试控制器
 const control = new THREE.OrbitControls(camera, renderer.domElement);
-control.enableZoom = false;
+control.enableZoom = false; // 禁用缩放
 
 ////////////////////////////////////////////////////////////
 
 // 灯光 A，蓝色顶光
-const pointLightAtTop = new THREE.PointLight(0x004EFF, 1, 150);
-pointLightAtTop.castShadow = true;
-pointLightAtTop.position.set(-60, 60, 0);
+const pointLightAtTop = new THREE.PointLight(0x004EFF, 1, 200);
+pointLightAtTop.position.set(0, 100, -20);
 scene.add(pointLightAtTop);
 
-// 灯光 B，黄色侧光
-const pointLightAtSide = new THREE.PointLight(0xFFFFFF, 4, 100);
-pointLightAtSide.castShadow = true;
+// 灯光 B，主光源，白色侧光
+const pointLightAtSide = new THREE.PointLight(0xFFFFFF, 1.5, 100);
+pointLightAtSide.castShadow = true; // 产生阴影
 pointLightAtSide.position.set(-70, 20, 40);
 scene.add(pointLightAtSide);
 
-// 灯光 C，紫色侧光，背面不光
-const pointLightAtBack = new THREE.PointLight(0xFF9AEB, 1, 150);
-pointLightAtBack.castShadow = true;
+// 灯光 C，辅助光，背部补光
+const pointLightAtBack = new THREE.PointLight(0xFF9AEB, 0.2, 150);
 pointLightAtBack.position.set(100, -60, 0);
 scene.add(pointLightAtBack);
 
@@ -54,8 +54,8 @@ const starOfVenus = new StarVenus();
 scene.add(starOfVenus.mesh);
 
 // 火星
-const starOfMesh = new StarMars();
-scene.add(starOfMesh.mesh);
+const starOfMars = new StarMars();
+scene.add(starOfMars.mesh);
 
 // 木星
 const starOfJupiter = new StartJupiter();
@@ -102,9 +102,10 @@ composer.addPass(effectCopy);
 // 光效
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), 1.5, 0.4, 0.85);
 bloomPass.renderToScreen = true;
-bloomPass.threshold = 0.05;
-bloomPass.strength = 0.3; // 辉光强度
-bloomPass.radius = 2;
+bloomPass.exposure = 0;
+bloomPass.strength = 1; // 辉光强度
+bloomPass.threshold = 0;
+bloomPass.radius = 0.5;
 composer.addPass(bloomPass);
 
 ////////////////////////////////////////////////////////////
@@ -116,8 +117,8 @@ const render = () => {
 
     // 渲染场景
     // 启用后期处理后，需要使用 composer.render
-    composer.render();
     // renderer.render(scene, camera);
+    composer.render();
 
     // 控制器更新
     control.update();
@@ -127,10 +128,9 @@ const render = () => {
 const animate = () => {
     // 球体自转
     starOfVenus.mesh.rotation.y += 0.001;
-    starOfMesh.mesh.rotation.y += 0.0008;
+    starOfMars.mesh.rotation.y += 0.0008;
     starOfJupiter.mesh.rotation.y += 0.0008;
-
-    starOfSaturn.mesh.rotation.z += 0.0005;
+    starOfSaturn.mesh.rotation.y += 0.0005;
     starOfSaturn.ringGroup.rotation.z -= 0.0005;
 
     render();
@@ -165,7 +165,7 @@ const transform = presets => {
 // 场景切换
 const checkStar = (current, prev) => {
     const end = [
-        // 摄像机归位
+        // 每次切换星球，摄像机都需要回到原点
         {
             start: camera.position,
             end: {
@@ -199,9 +199,9 @@ const checkStar = (current, prev) => {
         end.push({
             start: prev.scale,
             end: {
-                x: 0,
-                y: 0,
-                z: 0
+                x: 1,
+                y: 1,
+                z: 1
             }
         }, {
             start: prev.position,
@@ -222,7 +222,7 @@ const checkStar = (current, prev) => {
 ////////////////////////////////////////////////////////////
 
 // 当前可见的星球
-let currentStar = starOfMesh.mesh;
+let currentStar = starOfMars.mesh;
 
 // 初始化
 animate();
@@ -243,9 +243,9 @@ document.getElementById('star-venus').addEventListener('click', () => {
 });
 
 document.getElementById('star-mars').addEventListener('click', () => {
-    if (currentStar === starOfMesh.mesh) return;
-    checkStar(starOfMesh.mesh, currentStar);
-    currentStar = starOfMesh.mesh;
+    if (currentStar === starOfMars.mesh) return;
+    checkStar(starOfMars.mesh, currentStar);
+    currentStar = starOfMars.mesh;
 });
 
 document.getElementById('star-jupiter').addEventListener('click', () => {
@@ -315,7 +315,7 @@ document.getElementById('control-b').addEventListener('click', () => {
             },
         },
 
-        // 主光源前移
+        // 每次切换星球，主光源都需要回到初始位置
         {
             start: pointLightAtSide.position,
             end: {
@@ -338,7 +338,7 @@ document.getElementById('control-b').addEventListener('click', () => {
         // 球体旋转到向阳面
         {
             start: currentStar.rotation,
-            end: new THREE.Vector3(16 * Math.random(), -10, 1.5 * Math.random()),
+            end: new THREE.Vector3(16 * Math.random(), currentStar.rotation.y, 1.5 * Math.random()),
             easing: TWEEN.Easing.Exponential.Out,
         },
     ]);
