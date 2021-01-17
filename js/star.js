@@ -18,27 +18,22 @@ camera.lookAt({
     y: 0,
     z: 0
 });
-camera.position.z = 100;
+camera.position.z = 80;
 scene.add(camera);
 
 ////////////////////////////////////////////////////////////
 
 // 调试控制器
 const control = new THREE.OrbitControls(camera, renderer.domElement);
+control.enableZoom = false;
 
 ////////////////////////////////////////////////////////////
 
 // 灯光 A，蓝色顶光
-const pointLightAtTop = new THREE.PointLight(0x004EFF, 4, 150);
+const pointLightAtTop = new THREE.PointLight(0x004EFF, 1, 150);
 pointLightAtTop.castShadow = true;
-pointLightAtTop.position.set(-20, 60, 0);
+pointLightAtTop.position.set(-60, 60, 0);
 scene.add(pointLightAtTop);
-
-// 调整顶部光源的阴影
-pointLightAtTop.shadow.mapSize.width = 512;
-pointLightAtTop.shadow.mapSize.height = 512;
-pointLightAtTop.shadow.camera.near = 0.5;
-pointLightAtTop.shadow.camera.far = 500;
 
 // 灯光 B，黄色侧光
 const pointLightAtSide = new THREE.PointLight(0xFFFFFF, 4, 100);
@@ -46,119 +41,29 @@ pointLightAtSide.castShadow = true;
 pointLightAtSide.position.set(-70, 20, 40);
 scene.add(pointLightAtSide);
 
-// 调整侧面光源的阴影
-pointLightAtSide.shadow.mapSize.width = 512;
-pointLightAtSide.shadow.mapSize.height = 512;
-pointLightAtSide.shadow.camera.near = 0.5;
-pointLightAtSide.shadow.camera.far = 500;
-
-// 灯光 C，蓝色顶光
-const pointLightAtTopTwo = new THREE.PointLight(0xFF9AEB, 1, 150);
-pointLightAtTopTwo.castShadow = true;
-pointLightAtTopTwo.position.set(100, -60, 0);
-scene.add(pointLightAtTopTwo);
+// 灯光 C，紫色侧光，背面不光
+const pointLightAtBack = new THREE.PointLight(0xFF9AEB, 1, 150);
+pointLightAtBack.castShadow = true;
+pointLightAtBack.position.set(100, -60, 0);
+scene.add(pointLightAtBack);
 
 ////////////////////////////////////////////////////////////
+
+// 金星
+const starOfVenus = new StarVenus();
+scene.add(starOfVenus.mesh);
 
 // 火星
-const marsSegments = 200;
-const mars = new THREE.SphereGeometry(20, marsSegments, marsSegments);
-
-// 漫反射贴图
-const marsLightMapTexture = new THREE.TextureLoader().load('images/mars.jpg');
-marsLightMapTexture.repeat.set(1, 1);
-
-// 凹凸贴图
-const marsBumpMapTexture = new THREE.TextureLoader().load('images/mars_bump.jpg');
-marsBumpMapTexture.wrapS = THREE.RepeatWrapping;
-marsBumpMapTexture.wrapT = THREE.RepeatWrapping;
-marsBumpMapTexture.repeat.set(1, 1);
-
-const marsMaterial = new THREE.MeshStandardMaterial({
-    map: marsLightMapTexture, // 漫反射贴图
-    lightMap: marsLightMapTexture, // 自发光贴图
-    lightMapIntensity: 0.05, // 自发光强度   
-    bumpMap: marsBumpMapTexture, // 凹凸贴图
-    bumpScale: 0.1, // 凹凸程度
-    metalness: 0.1, // 金属质感
-    roughness: 1, // 粗糙程度
-});
-
-const marsMesh = new THREE.Mesh(mars, marsMaterial);
-
-marsMesh.scale.x = 1;
-marsMesh.scale.y = 1;
-marsMesh.scale.z = 10;
-
-scene.add(marsMesh);
-
-////////////////////////////////////////////////////////////
+const starOfMesh = new StarMars();
+scene.add(starOfMesh.mesh);
 
 // 木星
-const jupiterGroup = new THREE.Group();
-const segmentsJupiter = 200;
-const jupiter = new THREE.SphereGeometry(20, segmentsJupiter, segmentsJupiter);
+const starOfJupiter = new StartJupiter();
+scene.add(starOfJupiter.mesh);
 
-// 漫反射贴图
-const jupiterMapTexture = new THREE.TextureLoader().load('images/jupiter.jpg');
-jupiterMapTexture.repeat.set(1, 1);
-
-const jupiterMaterial = new THREE.MeshStandardMaterial({
-    map: jupiterMapTexture, // 漫反射贴图
-    lightMap: jupiterMapTexture, // 自发光贴图
-    lightMapIntensity: 0.1, // 自发光强度   
-    bumpMap: jupiterMapTexture, // 凹凸贴图
-    bumpScale: 0.1, // 凹凸程度
-    metalness: 0.5, // 金属质感
-    roughness: 1, // 粗糙程度
-});
-
-const jupiterMesh = new THREE.Mesh(jupiter, jupiterMaterial);
-
-jupiterGroup.add(jupiterMesh);
-
-// 土星环
-var jupiterSatelliteGroup = new THREE.Group();
-for (let i = 0; i < 1200; i++) {
-    const boxGeom = new THREE.SphereGeometry(Math.max(0.0002, Math.random() * 0.15), 6, 6);
-    const cube = new THREE.Mesh(boxGeom, jupiterMaterial);
-
-    // 初始化随机位置
-    cube.position.x = Math.sin(i) * Math.PI * (Math.random() + 10 + Math.random() * 5);
-    cube.position.y = Math.cos(i) * Math.PI * (Math.random() + 10 + Math.random() * 5);
-    cube.position.z = Math.sin(i) * Math.random(3);
-
-    jupiterSatelliteGroup.add(cube);
-}
-
-// 土星环线条
-const jupiterRingShadown = new THREE.RingGeometry(35, 45, 360, 8, 0.1, Math.PI * 2);
-
-// 漫反射贴图
-const jupiterRingShadownTexture = new THREE.TextureLoader().load('images/jupiter_ring.png');
-
-const jupiterRingShadownMaterial = new THREE.MeshStandardMaterial({
-    alphaMap: jupiterRingShadownTexture,
-    side: THREE.DoubleSide,
-    specular: 0,
-    opacity: 0.5,
-    transparent: true,
-    roughness: 2, // 粗糙程度
-});
-
-const jupiterRingShadownmMesh = new THREE.Mesh(jupiterRingShadown, jupiterRingShadownMaterial);
-jupiterSatelliteGroup.add(jupiterRingShadownmMesh);
-
-// 调整土星环的角度
-jupiterSatelliteGroup.rotation.x = 1.7;
-jupiterSatelliteGroup.rotation.y = 0.2;
-jupiterGroup.add(jupiterSatelliteGroup);
-
-jupiterGroup.scale.x = 0;
-jupiterGroup.scale.y = 0;
-jupiterGroup.scale.z = 0;
-
-scene.add(jupiterGroup);
+// 土星
+const starOfSaturn = new StartSaturn();
+scene.add(starOfSaturn.group);
 
 ////////////////////////////////////////////////////////////
 
@@ -221,9 +126,12 @@ const render = () => {
 // 场景动画
 const animate = () => {
     // 球体自转
-    marsMesh.rotation.y += 0.0008;
-    jupiterMesh.rotation.y += 0.0008;
-    jupiterSatelliteGroup.rotation.z -= 0.0005;
+    starOfVenus.mesh.rotation.y += 0.001;
+    starOfMesh.mesh.rotation.y += 0.0008;
+    starOfJupiter.mesh.rotation.y += 0.0008;
+
+    starOfSaturn.mesh.rotation.z += 0.0005;
+    starOfSaturn.ringGroup.rotation.z -= 0.0005;
 
     render();
     requestAnimationFrame(animate);
@@ -239,13 +147,11 @@ const resize = () => {
     composer.setSize(width, height);
 };
 
-////////////////////////////////////////////////////////////
-
 // 过渡动画
-const transform = preset => {
+const transform = presets => {
     TWEEN.removeAll();
 
-    preset.forEach(preset => {
+    presets.forEach(preset => {
         new TWEEN.Tween(preset.start)
             .to(preset.end, preset.duration || 1000 * 2)
             .easing(preset.easing || TWEEN.Easing.Linear.None)
@@ -256,14 +162,9 @@ const transform = preset => {
 
 };
 
-////////////////////////////////////////////////////////////
-
-// 当前可见的星球
-let currentStar = marsMesh;
-
 // 场景切换
-const checkStar = (prev, current) => {
-    transform([
+const checkStar = (current, prev) => {
+    const end = [
         // 摄像机归位
         {
             start: camera.position,
@@ -272,28 +173,6 @@ const checkStar = (prev, current) => {
                 y: 0,
                 z: 100
             },
-        },
-
-        // 上一星球退出画外
-        {
-            start: prev.scale,
-            end: {
-                x: 0,
-                y: 0,
-                z: 0
-            }
-        },
-        {
-            start: prev.position,
-            end: {
-                x: 0,
-                y: 0,
-                z: 200
-            }
-        },
-        {
-            start: prev.rotation,
-            end: new THREE.Vector3(0, 0, 0),
         },
 
         // 当前星球进入视野
@@ -313,13 +192,43 @@ const checkStar = (prev, current) => {
                 z: 0
             }
         },
-    ]);
+    ];
+
+    // 上一星球退出画外
+    if (prev) {
+        end.push({
+            start: prev.scale,
+            end: {
+                x: 0,
+                y: 0,
+                z: 0
+            }
+        }, {
+            start: prev.position,
+            end: {
+                x: 0,
+                y: 0,
+                z: 200
+            }
+        }, {
+            start: prev.rotation,
+            end: new THREE.Vector3(0, 0, 0),
+        }, );
+    }
+
+    transform(end);
 }
+
+////////////////////////////////////////////////////////////
+
+// 当前可见的星球
+let currentStar = starOfMesh.mesh;
 
 // 初始化
 animate();
-checkStar(jupiterGroup, marsMesh);
 
+// 初始显示火星
+checkStar(currentStar);
 
 ////////////////////////////////////////////////////////////
 
@@ -327,14 +236,28 @@ checkStar(jupiterGroup, marsMesh);
 window.addEventListener("resize", resize);
 
 // 切换星球
+document.getElementById('star-venus').addEventListener('click', () => {
+    if (currentStar === starOfVenus.mesh) return;
+    checkStar(starOfVenus.mesh, currentStar);
+    currentStar = starOfVenus.mesh;
+});
+
 document.getElementById('star-mars').addEventListener('click', () => {
-    currentStar = marsMesh;
-    checkStar(jupiterGroup, marsMesh);
+    if (currentStar === starOfMesh.mesh) return;
+    checkStar(starOfMesh.mesh, currentStar);
+    currentStar = starOfMesh.mesh;
 });
 
 document.getElementById('star-jupiter').addEventListener('click', () => {
-    currentStar = jupiterGroup;
-    checkStar(marsMesh, jupiterGroup);
+    if (currentStar === starOfJupiter.mesh) return;
+    checkStar(starOfJupiter.mesh, currentStar);
+    currentStar = starOfJupiter.mesh;
+});
+
+document.getElementById('star-saturn').addEventListener('click', () => {
+    if (currentStar === starOfSaturn.group) return;
+    checkStar(starOfSaturn.group, currentStar);
+    currentStar = starOfSaturn.group;
 });
 
 // 基础控制
@@ -347,6 +270,16 @@ document.getElementById('control-a').addEventListener('click', () => {
                 x: 0,
                 y: 0,
                 z: 100
+            },
+        },
+
+        // 主光源前移
+        {
+            start: pointLightAtSide.position,
+            end: {
+                x: -70,
+                y: 20,
+                z: 40
             },
         },
 
@@ -382,6 +315,16 @@ document.getElementById('control-b').addEventListener('click', () => {
             },
         },
 
+        // 主光源前移
+        {
+            start: pointLightAtSide.position,
+            end: {
+                x: -40,
+                y: 20,
+                z: 80
+            },
+        },
+
         // 球体拉近展示
         {
             start: currentStar.position,
@@ -395,7 +338,7 @@ document.getElementById('control-b').addEventListener('click', () => {
         // 球体旋转到向阳面
         {
             start: currentStar.rotation,
-            end: new THREE.Vector3(-2 * Math.random(), 2 * Math.random(), 1.5 * Math.random()),
+            end: new THREE.Vector3(16 * Math.random(), -10, 1.5 * Math.random()),
             easing: TWEEN.Easing.Exponential.Out,
         },
     ]);
